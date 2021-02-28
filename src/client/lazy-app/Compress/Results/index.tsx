@@ -6,6 +6,7 @@ import 'shared/custom-els/loading-spinner';
 import { SourceImage } from '../';
 import prettyBytes from './pretty-bytes';
 import { Arrow, DownloadIcon } from 'client/lazy-app/icons';
+import { spinnerFillUnfillRotate } from 'shared/custom-els/loading-spinner/styles.css';
 
 interface Props {
   loading: boolean;
@@ -14,10 +15,17 @@ interface Props {
   downloadUrl?: string;
   flipSide: boolean;
   typeLabel: string;
+  dateString: string;
+  bannerType: string;
+  pastors: string;
+  contentType: string;
+  fileDetails: string;
+  version: string;
 }
 
 interface State {
   showLoadingState: boolean;
+  finalFileName: string;
 }
 
 const loadingReactionDelay = 500;
@@ -25,6 +33,7 @@ const loadingReactionDelay = 500;
 export default class Results extends Component<Props, State> {
   state: State = {
     showLoadingState: this.props.loading,
+    finalFileName: '',
   };
 
   /** The timeout ID between entering the loading state, and changing UI */
@@ -47,6 +56,8 @@ export default class Results extends Component<Props, State> {
   private onDownload = () => {
     // GA can’t do floats. So we round to ints. We're deliberately rounding to nearest kilobyte to
     // avoid cases where exact image sizes leak something interesting about the user.
+    this.getFinalFileName();
+
     const before = Math.round(this.props.source!.file.size / 1024);
     const after = Math.round(this.props.imageFile!.size / 1024);
     const change = Math.round((after / before) * 1000);
@@ -58,6 +69,49 @@ export default class Results extends Component<Props, State> {
     });
   };
 
+  private getFinalFileName = () => {
+    const bannerType = this.props.bannerType;
+    const pastors = this.props.pastors;
+    const contentType = this.props.contentType;
+    const fileDetails = this.props.fileDetails;
+    const version = this.props.version;
+    const date = this.props.dateString;
+
+    const filename = this.props.imageFile?.name;
+
+    let final = '';
+
+    var ext = filename?.substr(filename.lastIndexOf('.') + 1);
+
+    if (date != '') {
+      final += date + ' ';
+    }
+
+    if (bannerType != '') {
+      final += bannerType + '_';
+    }
+
+    if (pastors != '') {
+      final += pastors + '_';
+    }
+
+    if (contentType != '') {
+      final += contentType + '_';
+    }
+
+    if (version != '') {
+      final += version + '_';
+    }
+
+    if (fileDetails != '') {
+      final += fileDetails + '.';
+    }
+
+    final += ext;
+
+    this.state.finalFileName = final;
+  };
+
   render(
     { source, imageFile, downloadUrl, flipSide, typeLabel }: Props,
     { showLoadingState }: State,
@@ -66,6 +120,8 @@ export default class Results extends Component<Props, State> {
     const isOriginal = !source || !imageFile || source.file === imageFile;
     let diff;
     let percent;
+
+    this.getFinalFileName();
 
     if (source && imageFile) {
       diff = imageFile.size / source.file.size;
@@ -122,7 +178,8 @@ export default class Results extends Component<Props, State> {
         <a
           class={showLoadingState ? style.downloadDisable : style.download}
           href={downloadUrl}
-          download={imageFile ? imageFile.name : ''}
+          download={this.state.finalFileName}
+          //{imageFile ? imageFile.name : ''}
           title="Download"
           onClick={this.onDownload}
         >

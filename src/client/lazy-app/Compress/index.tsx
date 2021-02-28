@@ -73,6 +73,12 @@ interface State {
   mobileView: boolean;
   preprocessorState: PreprocessorState;
   encodedPreprocessorState?: PreprocessorState;
+  dateString: string;
+  bannerType: string;
+  pastors: string;
+  contentType: string;
+  fileDetails: string;
+  version: string;
 }
 
 interface MainJob {
@@ -268,6 +274,17 @@ function updateDocumentTitle(filename: string = ''): void {
     : originalDocumentTitle;
 }
 
+function getDateString(): string {
+  const today = new Date();
+  const dd = String(today.getDate()).padStart(2, '0');
+  const mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+  const yyyy = today.getFullYear();
+  const tomorrow = Number(dd) + 1;
+  const datestring = yyyy + mm + dd;
+
+  return datestring + tomorrow;
+}
+
 export default class Compress extends Component<Props, State> {
   widthQuery = window.matchMedia('(max-width: 599px)');
 
@@ -295,6 +312,12 @@ export default class Compress extends Component<Props, State> {
       },
     ],
     mobileView: this.widthQuery.matches,
+    dateString: getDateString(),
+    bannerType: '',
+    pastors: '',
+    contentType: '',
+    fileDetails: '',
+    version: '',
   };
 
   private readonly encodeCache = new ResultCache();
@@ -315,6 +338,42 @@ export default class Compress extends Component<Props, State> {
 
     import('../sw-bridge').then(({ mainAppLoaded }) => mainAppLoaded());
   }
+
+  public onDateUpdate = (value: string) => {
+    this.setState({
+      dateString: value,
+    });
+  };
+
+  public onBannerTypeUpdate = (value: string) => {
+    this.setState({
+      bannerType: value,
+    });
+  };
+
+  public onPastorsUpdate = (value: string) => {
+    this.setState({
+      pastors: value,
+    });
+  };
+
+  public onContentTypeUpdate = (value: string) => {
+    this.setState({
+      contentType: value,
+    });
+  };
+
+  public onFileDetailsUpdate = (value: string) => {
+    this.setState({
+      fileDetails: value,
+    });
+  };
+
+  public onVersionUpdate = (value: string) => {
+    this.setState({
+      version: value,
+    });
+  };
 
   private onMobileWidthChange = () => {
     this.setState({ mobileView: this.widthQuery.matches });
@@ -815,7 +874,19 @@ export default class Compress extends Component<Props, State> {
 
   render(
     { onBack }: Props,
-    { loading, sides, source, mobileView, preprocessorState }: State,
+    {
+      loading,
+      sides,
+      source,
+      mobileView,
+      preprocessorState,
+      dateString,
+      bannerType,
+      pastors,
+      contentType,
+      fileDetails,
+      version,
+    }: State,
   ) {
     const [leftSide, rightSide] = sides;
     const [leftImageData, rightImageData] = sides.map((i) => i.data);
@@ -832,6 +903,12 @@ export default class Compress extends Component<Props, State> {
         onProcessorOptionsChange={this.onProcessorOptionsChange}
         onCopyCliClick={this.onCopyCliClick}
         onCopyToOtherSideClick={this.onCopyToOtherClick}
+        onDateChange={this.onDateUpdate}
+        onBannerTypeChange={this.onBannerTypeUpdate}
+        onPastorsChange={this.onPastorsUpdate}
+        onContentTypeChange={this.onContentTypeUpdate}
+        onFileDetailsChange={this.onFileDetailsUpdate}
+        onVersionChange={this.onVersionUpdate}
       />
     ));
 
@@ -847,6 +924,12 @@ export default class Compress extends Component<Props, State> {
             ? encoderMap[side.latestSettings.encoderState.type].meta.label
             : 'Original Image'
         }
+        dateString={dateString}
+        bannerType={bannerType}
+        pastors={pastors}
+        contentType={contentType}
+        fileDetails={fileDetails}
+        version={version}
       />
     ));
 
